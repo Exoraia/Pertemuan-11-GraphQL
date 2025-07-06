@@ -81,12 +81,35 @@ public class ProductForm extends JFrame {
             String jsonRequest = new Gson().toJson(new GraphQLQuery(query));
             String response = sendGraphQLRequest(jsonRequest);
             System.out.println("Product added!\n\n" + response);
+
+            JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject();
+            JsonElement dataElement = jsonObject.get("data");
+
+            if (dataElement == null || dataElement.isJsonNull()) {
+                System.out.println("No data received after adding product.");
+                return;
+            }
+
+            JsonObject addedProduct = dataElement.getAsJsonObject().getAsJsonObject("addProduct");
+
+            if (addedProduct != null) {
+                tableModel.setRowCount(0);
+
+                Long id = addedProduct.get("id").getAsLong();
+                String name = addedProduct.get("name").getAsString();
+                double price = addedProduct.get("price").getAsDouble();
+                String category = addedProduct.get("category").getAsString();
+                tableModel.addRow(new Object[]{id, name, price, category});
+            }
+
+
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
-        ambilSemuaProduk();
+
         clearInputFields();
     }
+
 
     private void ambilSemuaProduk() {
         try {
